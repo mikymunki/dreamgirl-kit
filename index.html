@@ -4,15 +4,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>DreamGirl Creator Kit by MikyMunki</title>
-  <meta name="description" content="Create, explore, and connect with your perfect AI DreamGirl — powered by MikyMunki.">
-  <link rel="stylesheet" href="style.css" />
-  <script defer src="main.js"></script>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #111; color: #fff; }
+    header, footer { padding: 1rem; text-align: center; background: #222; }
+    iframe { width: 100%; height: 95vh; border: none; }
+    #create-btn {
+      position: fixed; bottom: 1rem; right: 1rem;
+      background: hotpink; color: white; border: none;
+      padding: 0.75rem 1.5rem; border-radius: 40px;
+      font-weight: bold; cursor: pointer;
+      z-index: 999;
+    }
+  </style>
 </head>
 <body>
-  <header><h1>DREAMGIRL</h1><p class="typing">Clone. Connect. Control.</p></header>
-  <main id="model-feed">Loading models...</main>
-  <button id="create-btn">Create Yours</button>
-  <button id="scroll-top">↑</button>
-  <footer><p>Built with MikyMunki’s DreamGirl Kit</p></footer>
+  <header>
+    <h1>DREAMGIRL</h1>
+    <p style="color: #ccc;">Powered by MikyMunki</p>
+  </header>
+
+  <!-- Embed the live affiliate feed -->
+  <iframe src="https://creators.deepfake.com/top_models5/13001710?ref=13001710" allowfullscreen></iframe>
+
+  <button id="create-btn" onclick="window.open('https://creators.deepfake.com/create?ref=13001710', '_blank')">
+    Create Yours
+  </button>
+
+  <footer>
+    <p>&copy; 2025 DreamGirl Creator Kit — Built by MikyMunki</p>
+  </footer>
 </body>
 </html>
