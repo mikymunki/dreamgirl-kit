@@ -21,5 +21,5 @@ function saveFav(name) {
   localStorage.setItem("favs", JSON.stringify(favs));
   alert("Saved " + name);
 }
-
-document.getElementById("scroll-top").onclick = () => window.scrollTo({top:0,behavior:'smooth'});
+document.getElementById("scroll-top").onclick = () =>
+  window.scrollTo({ top: 0, behavior: 'smooth' });
