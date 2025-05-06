@@ -1,37 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DreamGirl Creator Kit by MikyMunki</title>
+  <meta charset="UTF-8">
+  <!-- Ensures proper rendering and touch zooming on mobile devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Generated DreamGirl Images</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { margin: 0; font-family: sans-serif; background: #111; color: #fff; }
-    header, footer { padding: 1rem; text-align: center; background: #222; }
-    iframe { width: 100%; height: 95vh; border: none; }
-    #create-btn {
-      position: fixed; bottom: 1rem; right: 1rem;
-      background: hotpink; color: white; border: none;
-      padding: 0.75rem 1.5rem; border-radius: 40px;
-      font-weight: bold; cursor: pointer;
-      z-index: 999;
+    /* Additional custom styling */
+    .card {
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: scale(1.02);
+    }
+    /* Crop images into a uniform portrait format with a fixed height */
+    .card-img-top {
+      width: 100%;
+      height: 400px; /* Fixed height for all images */
+      object-fit: cover;
+    }
+    .preview-text {
+      display: -webkit-box;
+      -webkit-line-clamp: 6;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    /* Pastel button styles */
+    .btn-soft-chat {
+      margin: 0 4px;
+      background-color: #a3c9f1;
+      border: 1px solid #a3c9f1;
+      color: #000;
+    }
+    .btn-soft-chat:hover {
+      background-color: #90b9e8;
+      border-color: #90b9e8;
+    }
+    .btn-soft-gen {
+      margin: 0 4px;
+      background-color: #a8d5ba;
+      border: 1px solid #a8d5ba;
+      color: #000;
+    }
+    .btn-soft-gen:hover {
+      background-color: #95c7a8;
+      border-color: #95c7a8;
+    }
+    .btn-soft-gallery {
+      margin: 0 4px;
+      background-color: #f2c6c6;
+      border: 1px solid #f2c6c6;
+      color: #000;
+    }
+    .btn-soft-gallery:hover {
+      background-color: #e6a9a9;
+      border-color: #e6a9a9;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>DREAMGIRL</h1>
-    <p style="color: #ccc;">Powered by MikyMunki</p>
-  </header>
+  <div class="container my-5">
+    <!-- Header & Intro -->
+    <div id="header" class="text-center mb-4">
+      <p class="fs-6">This page shows the top models created using our exclusive</p>
+      <a href="/" id="header-link">
+        <img src="https://creators.deepfake.com/public/img/wowify3.jpg" alt="Gallery Header" class="img-fluid mb-3">
+      </a>
+      <h3>Clone and Customize over 1 Million Beautiful AI Girls and Guys!</h3>
+    </div>
+    
+    <!-- Search Bar -->
+    <div id="search-container" class="mb-4">
+      <form id="search-form" class="d-flex justify-content-center">
+        <input type="text" id="search" class="form-control w-auto" placeholder="Search by name or keyword...">
+        <button type="submit" class="btn btn-primary ms-2">Search</button>
+      </form>
+    </div>
+    
+    <!-- Pagination (Top) -->
+    <div id="pagination-top" class="mb-3"></div>
+    
+    <!-- Gallery Cards Grid -->
+    <div id="gallery" class="row g-3"></div>
+    
+    <!-- Pagination (Bottom) -->
+    <div id="pagination-bottom" class="mt-3"></div>
+  </div>
 
-  <!-- Embed the live affiliate feed -->
-  <iframe src="https://creators.deepfake.com/top_models5/13001710?ref=13001710" allowfullscreen></iframe>
+  <script>
+    // Helper function to decode HTML entities
+    function decodeHTMLEntities(text) {
+      const textarea = document.createElement('textarea');
+      textarea.innerHTML = text;
+      return textarea.value;
+    }
 
-  <button id="create-btn" onclick="window.open('https://creators.deepfake.com/create?ref=13001710', '_blank')">
-    Create Yours
-  </button>
+    // Parse URL parameters from the current address
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageParam = parseInt(urlParams.get('page')) || 1;
+    const searchParam = urlParams.get('search') || '';
+    const refParam = urlParams.get('ref') || '13001710'; // default referral id if not provided
 
-  <footer>
-    <p>&copy; 2025 DreamGirl Creator Kit — Built by MikyMunki</p>
-  </footer>
+    // Global API parameters
+    const userId = 13001710;
+    const ref = refParam;  
+    let searchQuery = searchParam;
+    let currentPage = pageParam;
+
+    // Build the API URL with the userId segment.
+    let apiUrl = 'https://creators.deepfake.com/api/top_models5/' + userId;
+    apiUrl += `?ref=${ref}&page=${currentPage}` + (searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : '');
+
+    // Fetch images from the API endpoint based on the URL parameters
+    function fetchImages() {
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          renderGallery(data);
+          renderPagination(data);
+        })
+        .catch(error => {
+          console.error('Error fetching images:', error);
+        });
+    }
+
+    // Render gallery cards using Bootstrap's grid and card components
+    function renderGallery(data) {
+      const galleryDiv = document.getElementById('gallery');
+      galleryDiv.innerHTML = ''; // Clear existing gallery content
+      data.data.forEach(image => {
+        // Create a column for the card:
+        // col-12 for mobile (full width) and col-lg-3 for desktop (4 per row)
+        const col = document.createElement('div');
+        col.className = 'col-12 col-lg-3';
+
+        // Create card container
+        const card = document.createElement('div');
+        card.className = 'card h-100';
+
+        // Image link and image element
+        const imageLink = document.createElement('a');
+        imageLink.href = image.detailUrl;
+        const img = document.createElement('img');
+        img.src = image.imageUrl;
+        img.className = 'card-img-top';
+        img.alt = image.model_name;
+        img.title = image.model_name;
+        imageLink.appendChild(img);
+        card.appendChild(imageLink);
+
+        // Card body: title and preview text
+        const cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
+        const title = document.createElement('h5');
+        title.className = 'card-title';
+        title.textContent = image.size === 'portrait' ? image.model_name.substring(0, 25) : image.model_name.substring(0, 25);
+        cardBody.appendChild(title);
+        const preview = document.createElement('p');
+        preview.className = 'card-text preview-text';
+        preview.textContent = decodeHTMLEntities(image.backstory);
+        cardBody.appendChild(preview);
+        card.appendChild(cardBody);
+
+        // Card footer: pastel colored buttons
+        const cardFooter = document.createElement('div');
+        cardFooter.className = 'card-footer d-flex justify-content-around';
+
+        const sexyChatBtn = document.createElement('a');
+        sexyChatBtn.href = image.sexyChatUrl;
+        sexyChatBtn.className = 'btn btn-soft-chat btn-sm';
+        sexyChatBtn.textContent = 'SexyChat';
+        cardFooter.appendChild(sexyChatBtn);
+
+        const cloneBtn = document.createElement('a');
+        cloneBtn.href = image.cloneUrl;
+        cloneBtn.className = 'btn btn-soft-gen btn-sm';
+        cloneBtn.textContent = 'Clone';
+        cardFooter.appendChild(cloneBtn);
+
+        const galleryBtn = document.createElement('a');
+        galleryBtn.href = image.galleryUrl;
+        galleryBtn.className = 'btn btn-soft-gallery btn-sm';
+        galleryBtn.textContent = 'Gallery';
+        cardFooter.appendChild(galleryBtn);
+
+        card.appendChild(cardFooter);
+        col.appendChild(card);
+        galleryDiv.appendChild(col);
+      });
+    }
+
+    // Render pagination using Bootstrap pagination component
+    function renderPagination(data) {
+      const paginationTop = document.getElementById('pagination-top');
+      const paginationBottom = document.getElementById('pagination-bottom');
+      paginationTop.innerHTML = '';
+      paginationBottom.innerHTML = '';
+
+      const paginationContainer = document.createElement('nav');
+      const ul = document.createElement('ul');
+      ul.className = 'pagination justify-content-center';
+
+      // Previous link
+      if (data.current_page > 1) {
+        const prevPage = data.current_page - 1;
+        const prevUrl = `?ref=${ref}&page=${prevPage}` + (searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : '');
+        const li = document.createElement('li');
+        li.className = 'page-item';
+        const a = document.createElement('a');
+        a.className = 'page-link';
+        a.href = prevUrl;
+        a.textContent = 'Previous';
+        li.appendChild(a);
+        ul.appendChild(li);
+      } else {
+        const li = document.createElement('li');
+        li.className = 'page-item disabled';
+        const span = document.createElement('span');
+        span.className = 'page-link';
+        span.textContent = 'Previous';
+        li.appendChild(span);
+        ul.appendChild(li);
+      }
+
+      // Current page indicator
+      const li = document.createElement('li');
+      li.className = 'page-item disabled';
+      const span = document.createElement('span');
+      span.className = 'page-link';
+      span.textContent = ` Page ${data.current_page} of ${data.last_page} `;
+      li.appendChild(span);
+      ul.appendChild(li);
+
+      // Next link
+      if (data.current_page < data.last_page) {
+        const nextPage = data.current_page + 1;
+        const nextUrl = `?ref=${ref}&page=${nextPage}` + (searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : '');
+        const liNext = document.createElement('li');
+        liNext.className = 'page-item';
+        const aNext = document.createElement('a');
+        aNext.className = 'page-link';
+        aNext.href = nextUrl;
+        aNext.textContent = 'Next';
+        liNext.appendChild(aNext);
+        ul.appendChild(liNext);
+      } else {
+        const liNext = document.createElement('li');
+        liNext.className = 'page-item disabled';
+        const spanNext = document.createElement('span');
+        spanNext.className = 'page-link';
+        spanNext.textContent = 'Next';
+        liNext.appendChild(spanNext);
+        ul.appendChild(liNext);
+      }
+
+      paginationContainer.appendChild(ul);
+      // Clone the pagination for both top and bottom placements
+      paginationTop.appendChild(paginationContainer.cloneNode(true));
+      paginationBottom.appendChild(paginationContainer);
+    }
+
+    // Handle search form submission by updating the URL and reloading the page.
+    document.getElementById('search-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      searchQuery = document.getElementById('search').value;
+      const newUrl = `?ref=${ref}&page=1` + (searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : '');
+      window.location.href = newUrl;
+    });
+
+    // Initial fetch based on the URL parameters
+    fetchImages();
+  </script>
+  
+  <!-- Bootstrap 5 JS Bundle (includes Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
