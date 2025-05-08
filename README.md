@@ -1,3 +1,2 @@
 # DreamGirlKit
-
-A fantasy AI model browser and cloning tool. Optimized for SEO, performance, and affiliate monetization.
+The full-featured AI fantasy model platform optimized for affiliate sales.

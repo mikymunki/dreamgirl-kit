@@ -1,0 +1,1 @@
+// Tag preferences saved in localStorage
